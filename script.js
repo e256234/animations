@@ -1,94 +1,69 @@
+// Gibt an wie gross eine Kachel auf dem Spielbrett ist
 const tileSize = 32
+
+// Holt das canvas aus dem HTML und setzt die Grösse fest
 const canvas = document.querySelector("#canvas")
-canvas.width = 10 * tileSize
-canvas.height = 15 * tileSize
+canvas.width = tileSize * 10
+canvas.height = tileSize * 10
+
+// Holt den 2D-Kontext auf dem wir zeichnen
 const ctx = canvas.getContext("2d")
+// Macht das die Zeichnung verpixelt dargestellt wird
 ctx.imageSmoothingEnabled = false
+
+// Hole das Bild aus dem HTML. Das Bild hat die ID character, und könnte über das HTML einfach ausgetauscht werden.
 const img = document.querySelector("#character")
-const ground = document.querySelector("#ground")
-const map = []
-let x = 64
-let y = 128
-let pos = 0
-let type = 0
-let frameCounter = 0
+
+// Verschiedene Variablen um die Animation zu steuern.
+let pos = 0 // An welcher Position befindet sich die Animation gerade. Durchlauf von links nach rechts.
+let type = 0 // Welche Art der Animation soll gerade gezeigt werden. In welcher Zeile befindet sich die Animation.
+let frameCounter = 0 // Zählt wie viele Frames vergangen sind. Kann verwendet werden um die Animationsgeschwindigkeit zu steuern.
+let x = 0  // Die x-Koordinate im Spielbrett, wo die obere linke Ecke der Animation hinkommt.
+let y = 0  // Die y-Koordinate im Spielbrett, wo die obere linke Ecke der Animation hinkommt.
 
 function animationLoop () {
+    // Lösche den Inhalt aus dem letzten Frame, damit neu gezeichnet werden kann.
     ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-    drawMap()
+    // Zeichne die Animation an der richtigen Stelle im Spielbrett.
+    ctx.drawImage(img, // Von welchem Bild soll gezeichnet werden.
+        pos * tileSize, // X-Koordinate in dem Bild, wo ausgeschnitten wird.
+        type * tileSize,// Y-Koordinate in dem Bild, wo ausgeschnitten wird.
+        tileSize,       // Breite für den Bildausschnitt
+        tileSize,       // Höhe für den Bildausschnitt
+        x * tileSize,   // X-Koordinate im Spielbrett, wo das Bild gezeichnet wird.
+        y * tileSize,   // Y-Koordinate im Spielbrett, wo das Bild gezeichnet wird.
+        tileSize,       // Wie breit das Bild gezeichnet wird. Das Bild kann hier skaliert werden.
+        tileSize        // Wie hoch das Bild gezeichnet wird. Das Bild kann hier skaliert werden.
+    )
 
-    ctx.drawImage(img, pos * tileSize, type * tileSize, tileSize, tileSize,
-        x, y, tileSize, tileSize)
+    updateAnimation()
 
+    window.requestAnimationFrame(animationLoop)
+}
+
+function updateAnimation() {
     frameCounter++
-    if (frameCounter >= 15) {
-        pos++
-        if (pos >= 3) {
-            pos = 0
-        }
-        frameCounter = 0
-    }
-
-    window.requestAnimationFrame(animationLoop)
+    // TODO: passe hier die Variablen anm die die Animation steuern.
+    // Zum Beispiel:
+    // Erhöhen Sie `type` um 1. Wenn `type` grösser als 3 ist, setzen Sie es auf 0.
 }
 
+// Start ins Programm. Startet die Animations-Schleife
 function main() {
-    readMapFile("map.txt")
     window.requestAnimationFrame(animationLoop)
 }
 
-function pickMapTile(x, y, tileType) {
-    // draw Background tile first
-    drawTileOnMap(0, 0, x, y)
 
-    // Implementiere die Logik für das auswählen der Kachel
-    if (tileType === ".")      { /* do nothing */ } 
-    else if (tileType === "s") { drawTileOnMap(1, 0, x, y) }
-    else if (tileType === "p") { drawTileOnMap(2, 0, x, y) }
-    else if (tileType === "f") { drawTileOnMap(3, 0, x, y) }
+// Hört auf Tastendrucke.
+// Die verschiedenen Tasten können über `code` geprüft werden.
+// Wenn Sie nicht wissen was der Code für eine bestimmte Taste ist,
+// können Sie das mit `console.log(code)` herausfinden.
+window.onkeydown = function({code}) {
 
-    else if (tileType === "t") { drawTileOnMap(0, 1, x, y) }
-    else if (tileType === "b") { drawTileOnMap(1, 1, x, y) }
-    else if (tileType === "h") { drawTileOnMap(2, 1, x, y) }
-    else if (tileType === "w") { drawTileOnMap(3, 1, x, y) }
-    
-    else if (tileType === "B") { drawTileOnMap(1, 0, x, y); drawTileOnMap(2, 0, x, y) }
-
-    
-
-}
-
-function drawMap() {
-    for (let y = 0; y < map.length; y++) {
-      for (let x = 0; x < map[y].length; x++) {
-        pickMapTile(x, y, map[y][x]);
-      }
+    if (code === "ArrowRight") {
+        // Was soll passieren wenn die rechte Pfeiltaste gedrückt wird?
     }
-}
-
-function drawTileOnMap(xTilePos, yTilePos, xPos, yPos) {
-    //console.log(xPos, yPos)
-    ctx.drawImage(ground,
-        xTilePos * tileSize, yTilePos * tileSize, tileSize, tileSize,
-        xPos*tileSize, yPos*tileSize, tileSize, tileSize)
-}
-
-function readMapFile(filename) {
-    fetch(filename).then((res) => res.text()).then((data) => {
-        let rows = data.split("\n")
-        for (let y = 0; y < rows.length; y++) {
-            map.push(rows[y].split(""))
-        }
-    })
-}
-
-window.onkeydown = function(ev) {
-    console.log(ev.code)
-    if (ev.code === "ArrowUp") { type = 3}
-    if (ev.code === "ArrowDown") { type = 0}
-    if (ev.code === "ArrowLeft") { type = 1}
-    if (ev.code === "ArrowRight") { type = 2}
 }
 
 main()
